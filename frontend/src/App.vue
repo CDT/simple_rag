@@ -14,7 +14,7 @@
     </main>
 
     <!-- Toast notifications -->
-    <BaseToast />
+    <Toast />
   </div>
 </template>
 
@@ -22,7 +22,8 @@
 import { ref, onMounted } from 'vue'
 import { httpService } from './services/httpService'
 import { useDarkMode } from './composables/useDarkMode'
-import { AppSidebar, BaseToast } from './components'
+import { AppSidebar } from './components'
+import Toast from './components/Toast.vue'
 
 const menuItems = [
   { name: '对话', path: '/', icon: '💬' },

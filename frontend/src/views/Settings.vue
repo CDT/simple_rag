@@ -248,6 +248,7 @@ const resetDatabase = async () => {
   }
 }
 
+
 onMounted(() => {
   loadSettings()
 })
