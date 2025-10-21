@@ -12,14 +12,17 @@
     <main class="flex-1 overflow-hidden">
       <router-view />
     </main>
+
+    <!-- Toast notifications -->
+    <BaseToast />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { httpService } from './services/httpService'
 import { useDarkMode } from './composables/useDarkMode'
-import AppSidebar from './components/layout/AppSidebar.vue'
+import { AppSidebar, BaseToast } from './components'
 
 const menuItems = [
   { name: '对话', path: '/', icon: '💬' },
@@ -32,7 +35,7 @@ const { isDark, toggleDarkMode, initDarkMode } = useDarkMode()
 
 const checkConnection = async () => {
   try {
-    await axios.get('/api/health')
+    await httpService.get('/api/health')
     isConnected.value = true
   } catch (error) {
     isConnected.value = false

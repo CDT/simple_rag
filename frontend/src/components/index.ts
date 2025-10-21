@@ -11,6 +11,7 @@ export { default as BaseAlert } from './base/BaseAlert.vue'
 export { default as BasePageHeader } from './base/BasePageHeader.vue'
 export { default as BaseEmptyState } from './base/BaseEmptyState.vue'
 export { default as BaseProgressBar } from './base/BaseProgressBar.vue'
+export { default as BaseToast } from './base/BaseToast.vue'
 
 // ==================== 布局组件 (Layout Components) ====================
 export { default as AppSidebar } from './layout/AppSidebar.vue'

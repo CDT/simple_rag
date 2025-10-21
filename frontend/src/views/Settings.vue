@@ -19,34 +19,17 @@
             />
 
             <BaseInput
-              v-model="settings.deepseekApiBase"
+              v-model="settings.apiBase"
               label="DeepSeek API Base URL"
               placeholder="https://api.deepseek.com/v1"
             />
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                DeepSeek API 密钥
-              </label>
-              <div class="relative">
-                <input
-                  v-model="apiKey"
-                  :type="showApiKey ? 'text' : 'password'"
-                  placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  class="w-full px-4 py-2 pr-24 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
-                />
-                <button
-                  type="button"
-                  @click="showApiKey = !showApiKey"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-                >
-                  {{ showApiKey ? '隐藏' : '显示' }}
-                </button>
-              </div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                从 <a href="https://platform.deepseek.com" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline">platform.deepseek.com</a> 获取您的 API 密钥
-              </p>
-            </div>
+            <BaseInput
+              v-model="settings.apiKey"
+              label="DeepSeek API 密钥"
+              placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              hint="从 platform.deepseek.com 获取您的 API 密钥"
+            />
 
             <RangeSlider
               v-model="settings.temperature"
@@ -174,7 +157,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { httpService } from '../services/httpService'
 import type { Settings } from '../types'
 import BasePageHeader from '../components/base/BasePageHeader.vue'
 import BaseCard from '../components/base/BaseCard.vue'
@@ -186,13 +169,14 @@ import NumberInput from '../components/settings/NumberInput.vue'
 
 const settings = ref<Settings>({
   apiProvider: 'DeepSeek',
+  apiKey: '',
   embeddingDimensions: 384,
   chunkSize: 500,
   chunkOverlap: 50,
   retrievalCount: 5,
   temperature: 0.7,
   maxTokens: 2000,
-  deepseekApiBase: 'https://api.deepseek.com/v1',
+  apiBase: 'https://api.deepseek.com/v1',
   chromaPath: './chroma_db',
   port: 3000
 })
@@ -208,12 +192,10 @@ const portValue = computed({
 const isSaving = ref(false)
 const isResetting = ref(false)
 const saveResult = ref<{ success: boolean; message: string } | null>(null)
-const apiKey = ref('')
-const showApiKey = ref(false)
 
 const loadSettings = async () => {
   try {
-    const response = await axios.get('/api/settings')
+    const response = await httpService.get('/api/settings')
     settings.value = response.data.data
   } catch (error) {
     console.error('Error loading settings:', error)
@@ -225,21 +207,10 @@ const saveSettings = async () => {
   saveResult.value = null
 
   try {
-    const payload = {
-      ...settings.value,
-      apiKey: apiKey.value || undefined
-    }
-    
-    await axios.put('/api/settings', payload)
+    await httpService.put('/api/settings', settings.value)
     saveResult.value = {
       success: true,
       message: '设置保存成功！'
-    }
-    
-    // Clear API key input after successful save for security
-    if (apiKey.value) {
-      apiKey.value = ''
-      showApiKey.value = false
     }
   } catch (error: any) {
     saveResult.value = {
@@ -267,7 +238,7 @@ const resetDatabase = async () => {
   isResetting.value = true
 
   try {
-    await axios.post('/api/settings/reset')
+    await httpService.post('/api/settings/reset')
     alert('数据库重置成功！')
   } catch (error) {
     console.error('Error resetting database:', error)

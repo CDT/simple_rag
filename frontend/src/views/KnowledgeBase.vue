@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { httpService } from '../services/httpService'
 import type { FileInfo } from '../types'
 import BasePageHeader from '../components/base/BasePageHeader.vue'
 import BaseCard from '../components/base/BaseCard.vue'
@@ -87,7 +87,7 @@ const isDeletingFile = ref<string | null>(null)
 const loadFiles = async () => {
   isLoadingFiles.value = true
   try {
-    const response = await axios.get('/api/files')
+    const response = await httpService.get('/api/files')
     files.value = response.data.data.files
   } catch (error) {
     console.error('Error loading files:', error)
@@ -111,7 +111,7 @@ const uploadFile = async (file: File) => {
   formData.append('file', file)
 
   try {
-    const response = await axios.post('/api/ingest', formData, {
+    const response = await httpService.post('/api/ingest', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -124,11 +124,6 @@ const uploadFile = async (file: File) => {
 
     // Reload files
     await loadFiles()
-
-    // Clear file input
-    if (fileInput.value) {
-      fileInput.value.value = ''
-    }
   } catch (error: any) {
     uploadResult.value = {
       success: false,
@@ -152,7 +147,7 @@ const deleteFile = async (fileId: string) => {
 
   isDeletingFile.value = fileId
   try {
-    await axios.delete(`/api/files/${fileId}`)
+    await httpService.delete(`/api/files/${fileId}`)
     await loadFiles()
   } catch (error) {
     console.error('Error deleting file:', error)

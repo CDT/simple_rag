@@ -1,4 +1,4 @@
-import axios from 'axios';
+import httpService from './httpService.js';
 import { servicesLogger } from '../config/logger.js';
 import settingsService from './settingsService.js';
 
@@ -8,12 +8,8 @@ class DeepSeekService {
   }
 
   updateConfig() {
-    this.apiKey = settingsService.getSetting('api.deepseekApiKey');
-    this.apiBase = settingsService.getSetting('api.deepseekApiBase') || 'https://api.deepseek.com/v1';
-    
-    if (!this.apiKey) {
-      servicesLogger.warn('WARNING: DeepSeek API key not set in settings');
-    }
+    this.apiKey = settingsService.getSetting('api.apiKey');
+    this.apiBase = settingsService.getSetting('api.apiBase') || 'https://api.deepseek.com/v1';
   }
 
   async getEmbedding(text) {
@@ -66,7 +62,7 @@ class DeepSeekService {
       const temperature = settingsService.getSetting('model.temperature') || 0.7;
       const maxTokens = settingsService.getSetting('model.maxTokens') || 2000;
 
-      const response = await axios.post(
+      const response = await httpService.post(
         `${this.apiBase}/chat/completions`,
         {
           model: 'deepseek-chat',

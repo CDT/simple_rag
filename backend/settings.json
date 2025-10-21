@@ -1,8 +1,8 @@
 {
   "api": {
     "provider": "DeepSeek",
-    "deepseekApiKey": "abcdeef",
-    "deepseekApiBase": "https://api.deepseek.com/v1"
+    "apiKey": "sk-8aab5467d58a4e1294c1edbff420f027",
+    "apiBase": "https://api.deepseek.com/v1"
   },
   "server": {
     "port": 3000

@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
-import axios from 'axios'
+import { httpService } from '../services/httpService'
 import type { Message } from '../types'
 import BasePageHeader from '../components/base/BasePageHeader.vue'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
@@ -110,7 +110,7 @@ const sendMessage = async () => {
       content: m.content
     }))
 
-    const response = await axios.post('/api/chat', {
+    const response = await httpService.post('/api/chat', {
       message: messageToSend,
       history
     })

@@ -35,8 +35,8 @@ class SettingsService {
     return {
       api: {
         provider: 'DeepSeek',
-        deepseekApiKey: '',
-        deepseekApiBase: 'https://api.deepseek.com/v1'
+        apiKey: '',
+        apiBase: 'https://api.deepseek.com/v1'
       },
       server: {
         port: 3000
@@ -120,13 +120,14 @@ class SettingsService {
   getFrontendSettings() {
     return {
       apiProvider: this.settings.api.provider,
+      apiKey: this.settings.api.apiKey,
       embeddingDimensions: this.settings.embedding.dimensions,
       chunkSize: this.settings.processing.chunkSize,
       chunkOverlap: this.settings.processing.chunkOverlap,
       retrievalCount: this.settings.processing.retrievalCount,
       temperature: this.settings.model.temperature,
       maxTokens: this.settings.model.maxTokens,
-      deepseekApiBase: this.settings.api.deepseekApiBase,
+      apiBase: this.settings.api.apiBase,
       chromaPath: this.settings.database.chromaPath,
       port: this.settings.server.port
     };
@@ -137,7 +138,8 @@ class SettingsService {
     const updates = {
       api: {
         provider: frontendSettings.apiProvider,
-        deepseekApiBase: frontendSettings.deepseekApiBase
+        apiKey: frontendSettings.apiKey,
+        apiBase: frontendSettings.apiBase
       },
       server: {
         port: frontendSettings.port
@@ -158,11 +160,6 @@ class SettingsService {
         maxTokens: frontendSettings.maxTokens
       }
     };
-
-    // Handle API key separately for security
-    if (frontendSettings.apiKey) {
-      updates.api.deepseekApiKey = frontendSettings.apiKey;
-    }
 
     return this.updateSettings(updates);
   }
