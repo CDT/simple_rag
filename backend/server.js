@@ -1,10 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import fs from 'fs';
-
-// Load environment variables
-dotenv.config();
+import { serverLogger } from './config/logger.js';
+import settingsService from './services/settingsService.js';
 
 // Import routes
 import ingestRouter from './routes/ingest.js';
@@ -13,7 +11,7 @@ import filesRouter from './routes/files.js';
 import settingsRouter from './routes/settings.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = settingsService.getSetting('server.port') || 3000;
 
 // Middleware
 app.use(cors());
@@ -21,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Create chroma_db directory if it doesn't exist
-const chromaDir = process.env.CHROMA_PATH || './chroma_db';
+const chromaDir = settingsService.getSetting('database.chromaPath') || './chroma_db';
 if (!fs.existsSync(chromaDir)) {
   fs.mkdirSync(chromaDir, { recursive: true });
 }
@@ -39,7 +37,7 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  serverLogger.error('Unhandled error:', err);
   res.status(500).json({ 
     error: 'Something went wrong!', 
     message: err.message 
@@ -47,6 +45,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  serverLogger.info(`Server is running on http://localhost:${PORT}`);
 });
 

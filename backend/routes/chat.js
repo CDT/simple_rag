@@ -1,6 +1,7 @@
 import express from 'express';
 import chromaService from '../services/chromaService.js';
 import deepseekService from '../services/deepseekService.js';
+import { routesLogger } from '../config/logger.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    console.log(`Processing chat message: ${message}`);
+    routesLogger.info(`Processing chat message: ${message}`);
 
     // Generate embedding for the query
     const queryEmbedding = await deepseekService.getEmbedding(message);
@@ -55,7 +56,7 @@ router.post('/', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error processing chat:', error);
+    routesLogger.error('Error processing chat:', error);
     res.status(500).json({ 
       error: 'Failed to process chat', 
       message: error.message 

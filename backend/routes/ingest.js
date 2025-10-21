@@ -5,6 +5,7 @@ import chromaService from '../services/chromaService.js';
 import deepseekService from '../services/deepseekService.js';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import { routesLogger } from '../config/logger.js';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.post('/', upload.single('file'), async (req, res) => {
 
     const { originalname, path: filePath } = req.file;
     
-    console.log(`Processing file: ${originalname}`);
+    routesLogger.info(`Processing file: ${originalname}`);
 
     // Process document
     const processed = await documentProcessor.processDocument(filePath, originalname);
@@ -63,7 +64,7 @@ router.post('/', upload.single('file'), async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error ingesting document:', error);
+    routesLogger.error('Error ingesting document:', error);
     res.status(500).json({ 
       error: 'Failed to ingest document', 
       message: error.message 

@@ -1,12 +1,18 @@
 import axios from 'axios';
+import { servicesLogger } from '../config/logger.js';
+import settingsService from './settingsService.js';
 
 class DeepSeekService {
   constructor() {
-    this.apiKey = process.env.DEEPSEEK_API_KEY;
-    this.apiBase = process.env.DEEPSEEK_API_BASE || 'https://api.deepseek.com/v1';
+    this.updateConfig();
+  }
+
+  updateConfig() {
+    this.apiKey = settingsService.getSetting('api.deepseekApiKey');
+    this.apiBase = settingsService.getSetting('api.deepseekApiBase') || 'https://api.deepseek.com/v1';
     
     if (!this.apiKey) {
-      console.warn('WARNING: DEEPSEEK_API_KEY not set in environment variables');
+      servicesLogger.warn('WARNING: DeepSeek API key not set in settings');
     }
   }
 
@@ -18,7 +24,7 @@ class DeepSeekService {
       const embedding = this.createSimpleEmbedding(text);
       return embedding;
     } catch (error) {
-      console.error('Error getting embedding:', error);
+      servicesLogger.error('Error getting embedding:', error);
       throw error;
     }
   }
@@ -42,6 +48,9 @@ class DeepSeekService {
 
   async chat(messages, context = null) {
     try {
+      // Update config in case settings changed
+      this.updateConfig();
+      
       // Prepare system message with context
       let systemMessage = 'You are a helpful assistant.';
       if (context && context.length > 0) {
@@ -54,13 +63,16 @@ class DeepSeekService {
         ...messages
       ];
 
+      const temperature = settingsService.getSetting('model.temperature') || 0.7;
+      const maxTokens = settingsService.getSetting('model.maxTokens') || 2000;
+
       const response = await axios.post(
         `${this.apiBase}/chat/completions`,
         {
           model: 'deepseek-chat',
           messages: fullMessages,
-          temperature: 0.7,
-          max_tokens: 2000
+          temperature: temperature,
+          max_tokens: maxTokens
         },
         {
           headers: {
@@ -76,7 +88,7 @@ class DeepSeekService {
         sources: context || []
       };
     } catch (error) {
-      console.error('Error calling DeepSeek API:', error.response?.data || error.message);
+      servicesLogger.error('Error calling DeepSeek API:', error.response?.data || error.message);
       throw error;
     }
   }

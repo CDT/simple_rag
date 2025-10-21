@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import mammoth from 'mammoth';
+import { servicesLogger } from '../config/logger.js';
 
 class DocumentProcessor {
   async extractText(filePath) {
@@ -18,7 +19,7 @@ class DocumentProcessor {
           throw new Error(`Unsupported file type: ${ext}`);
       }
     } catch (error) {
-      console.error(`Error extracting text from ${filePath}:`, error);
+      servicesLogger.error(`Error extracting text from ${filePath}:`, error);
       throw error;
     }
   }
@@ -71,7 +72,7 @@ class DocumentProcessor {
         chunkCount: chunks.length
       };
     } catch (error) {
-      console.error('Error processing document:', error);
+      servicesLogger.error('Error processing document:', error);
       throw error;
     }
   }

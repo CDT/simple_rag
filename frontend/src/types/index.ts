@@ -40,4 +40,7 @@ export interface Settings {
   chunkOverlap: number
   retrievalCount: number
   apiKey?: string
+  deepseekApiBase?: string
+  chromaPath?: string
+  port?: number
 }

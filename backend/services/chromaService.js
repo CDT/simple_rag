@@ -1,6 +1,8 @@
 import { ChromaClient } from 'chromadb';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { servicesLogger } from '../config/logger.js';
+import settingsService from './settingsService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +19,7 @@ class ChromaService {
 
     try {
       // Initialize ChromaDB client with local persistence
-      const chromaPath = process.env.CHROMA_PATH || './chroma_db';
+      const chromaPath = settingsService.getSetting('database.chromaPath') || './chroma_db';
       this.client = new ChromaClient({
         path: chromaPath
       });
@@ -31,15 +33,15 @@ class ChromaService {
             'hnsw:space': 'cosine'
           }
         });
-        console.log('ChromaDB collection initialized successfully');
+        servicesLogger.info('ChromaDB collection initialized successfully');
       } catch (error) {
-        console.error('Error creating collection:', error);
+        servicesLogger.error('Error creating collection:', error);
         throw error;
       }
 
       this.initialized = true;
     } catch (error) {
-      console.error('Error initializing ChromaDB:', error);
+      servicesLogger.error('Error initializing ChromaDB:', error);
       throw error;
     }
   }
@@ -54,26 +56,29 @@ class ChromaService {
         documents: documents,
         metadatas: metadatas
       });
-      console.log(`Added ${documents.length} documents to ChromaDB`);
+      servicesLogger.info(`Added ${documents.length} documents to ChromaDB`);
       return true;
     } catch (error) {
-      console.error('Error adding documents to ChromaDB:', error);
+      servicesLogger.error('Error adding documents to ChromaDB:', error);
       throw error;
     }
   }
 
-  async query(queryEmbedding, nResults = 5) {
+  async query(queryEmbedding, nResults = null) {
     await this.initialize();
     
     try {
+      // Use settings value if nResults not provided
+      const retrievalCount = nResults || settingsService.getSetting('processing.retrievalCount') || 5;
+      
       const results = await this.collection.query({
         queryEmbeddings: [queryEmbedding],
-        nResults: nResults
+        nResults: retrievalCount
       });
       
       return results;
     } catch (error) {
-      console.error('Error querying ChromaDB:', error);
+      servicesLogger.error('Error querying ChromaDB:', error);
       throw error;
     }
   }
@@ -85,7 +90,7 @@ class ChromaService {
       const results = await this.collection.get();
       return results;
     } catch (error) {
-      console.error('Error getting all documents:', error);
+      servicesLogger.error('Error getting all documents:', error);
       throw error;
     }
   }
@@ -97,10 +102,10 @@ class ChromaService {
       await this.collection.delete({
         ids: [documentId]
       });
-      console.log(`Deleted document ${documentId} from ChromaDB`);
+      servicesLogger.info(`Deleted document ${documentId} from ChromaDB`);
       return true;
     } catch (error) {
-      console.error('Error deleting document:', error);
+      servicesLogger.error('Error deleting document:', error);
       throw error;
     }
   }
@@ -117,10 +122,10 @@ class ChromaService {
           'hnsw:space': 'cosine'
         }
       });
-      console.log('ChromaDB collection reset successfully');
+      servicesLogger.info('ChromaDB collection reset successfully');
       return true;
     } catch (error) {
-      console.error('Error resetting ChromaDB:', error);
+      servicesLogger.error('Error resetting ChromaDB:', error);
       throw error;
     }
   }

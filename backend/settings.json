@@ -1,0 +1,25 @@
+{
+  "api": {
+    "provider": "DeepSeek",
+    "deepseekApiKey": "abcdeef",
+    "deepseekApiBase": "https://api.deepseek.com/v1"
+  },
+  "server": {
+    "port": 3000
+  },
+  "database": {
+    "chromaPath": "./chroma_db"
+  },
+  "embedding": {
+    "dimensions": 384
+  },
+  "processing": {
+    "chunkSize": 500,
+    "chunkOverlap": 50,
+    "retrievalCount": 5
+  },
+  "model": {
+    "temperature": 0.7,
+    "maxTokens": 2000
+  }
+}

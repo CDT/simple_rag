@@ -18,6 +18,12 @@
               disabled
             />
 
+            <BaseInput
+              v-model="settings.deepseekApiBase"
+              label="DeepSeek API Base URL"
+              placeholder="https://api.deepseek.com/v1"
+            />
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 DeepSeek API 密钥
@@ -97,9 +103,29 @@
           </div>
         </BaseCard>
 
-        <!-- Database Management -->
-        <BaseCard title="数据库管理" icon="🗄️" class="mt-6">
+        <!-- Server Configuration -->
+        <BaseCard title="服务器配置" icon="⚙️" class="mt-6">
           <div class="space-y-4">
+            <NumberInput
+              v-model="portValue"
+              label="服务器端口"
+              :min="1000"
+              :max="65535"
+              hint="重启服务器后生效"
+            />
+          </div>
+        </BaseCard>
+
+        <!-- Database Configuration -->
+        <BaseCard title="数据库配置" icon="🗄️" class="mt-6">
+          <div class="space-y-4">
+            <BaseInput
+              v-model="settings.chromaPath"
+              label="ChromaDB 存储路径"
+              placeholder="./chroma_db"
+              hint="ChromaDB 数据库文件的存储位置"
+            />
+
             <BaseAlert
               type="warning"
               message="重置数据库将永久删除所有已上传的文档和嵌入数据。"
@@ -147,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import type { Settings } from '../types'
 import BasePageHeader from '../components/base/BasePageHeader.vue'
@@ -165,7 +191,18 @@ const settings = ref<Settings>({
   chunkOverlap: 50,
   retrievalCount: 5,
   temperature: 0.7,
-  maxTokens: 2000
+  maxTokens: 2000,
+  deepseekApiBase: 'https://api.deepseek.com/v1',
+  chromaPath: './chroma_db',
+  port: 3000
+})
+
+// Computed properties to ensure values are always defined
+const portValue = computed({
+  get: () => settings.value.port || 3000,
+  set: (value: number) => {
+    settings.value.port = value
+  }
 })
 
 const isSaving = ref(false)

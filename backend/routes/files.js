@@ -1,5 +1,6 @@
 import express from 'express';
 import chromaService from '../services/chromaService.js';
+import { routesLogger } from '../config/logger.js';
 
 const router = express.Router();
 
@@ -35,7 +36,7 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error getting files:', error);
+    routesLogger.error('Error getting files:', error);
     res.status(500).json({ 
       error: 'Failed to get files', 
       message: error.message 
@@ -75,7 +76,7 @@ router.delete('/:fileId', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error deleting file:', error);
+    routesLogger.error('Error deleting file:', error);
     res.status(500).json({ 
       error: 'Failed to delete file', 
       message: error.message 
@@ -109,7 +110,7 @@ router.get('/stats', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error getting stats:', error);
+    routesLogger.error('Error getting stats:', error);
     res.status(500).json({ 
       error: 'Failed to get stats', 
       message: error.message 
