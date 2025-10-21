@@ -25,20 +25,21 @@ class ToastService {
     
     // Set default duration based on toast type if not provided
     const defaultDuration = this.getDefaultDuration(toast.type)
+    const duration = toast.duration ?? defaultDuration
     
     const newToast: Toast = {
       id,
-      duration: toast.duration ?? defaultDuration,
+      duration,
       ...toast
     }
     
     this.toasts.value.push(newToast)
     
     // Auto remove after duration (only if duration > 0)
-    if (newToast.duration > 0) {
+    if (duration > 0) {
       setTimeout(() => {
         this.removeToast(id)
-      }, newToast.duration)
+      }, duration)
     }
     
     return id
@@ -46,10 +47,10 @@ class ToastService {
 
   private getDefaultDuration(type: Toast['type']): number {
     const durations = {
-      success: 4000,  // 4 seconds for success messages
-      error: 6000,    // 6 seconds for error messages (longer for user to read)
-      warning: 5000,  // 5 seconds for warnings
-      info: 4000      // 4 seconds for info messages
+      success: 3000,  // 3 seconds for success messages
+      error: 3000,    // 3 seconds for error messages
+      warning: 3000,  // 3 seconds for warnings
+      info: 3000      // 3 seconds for info messages
     }
     return durations[type]
   }
