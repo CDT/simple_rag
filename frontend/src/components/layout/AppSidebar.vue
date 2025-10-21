@@ -1,7 +1,7 @@
 <template>
   <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col transition-colors">
     <!-- Header -->
-    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
       <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-400">{{ appTitle }}</h1>
       <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ appSubtitle }}</p>
     </div>

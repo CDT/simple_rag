@@ -14,7 +14,7 @@
           <div class="space-y-4">
             <BaseInput
               v-model="settings.apiProvider"
-              label="API 提供商"
+              label="API Provider"
               disabled
             />
 
@@ -44,7 +44,7 @@
 
             <RangeSlider
               v-model="settings.temperature"
-              label="温度"
+              label="Temperature"
               :min="0"
               :max="1"
               :step="0.1"
