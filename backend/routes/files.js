@@ -1,32 +1,32 @@
-import express from 'express';
-import chromaService from '../services/chromaService.js';
-import { routesLogger } from '../config/logger.js';
+import express from 'express'
+import chromaService from '../services/chromaService.js'
+import { routesLogger } from '../config/logger.js'
 
-const router = express.Router();
+const router = express.Router()
 
 // Get all files
 router.get('/', async (req, res) => {
   try {
-    const documents = await chromaService.getAllDocuments();
+    const documents = await chromaService.getAllDocuments()
     
     // Group by fileId to get unique files
-    const filesMap = new Map();
+    const filesMap = new Map()
     
     if (documents.metadatas) {
       documents.metadatas.forEach((metadata, index) => {
-        const fileId = metadata.fileId;
+        const fileId = metadata.fileId
         if (!filesMap.has(fileId)) {
           filesMap.set(fileId, {
             fileId: fileId,
             fileName: metadata.fileName,
             chunkCount: metadata.totalChunks,
             uploadDate: metadata.uploadDate
-          });
+          })
         }
       });
     }
 
-    const files = Array.from(filesMap.values());
+    const files = Array.from(filesMap.values())
 
     res.json({
       success: true,
@@ -34,37 +34,37 @@ router.get('/', async (req, res) => {
         files,
         totalFiles: files.length
       }
-    });
+    })
   } catch (error) {
-    routesLogger.error('Error getting files:', error);
+    routesLogger.error('Error getting files:', error)
     res.status(500).json({ 
       error: 'Failed to get files', 
       message: error.message 
-    });
+    })
   }
 });
 
 // Delete a file
 router.delete('/:fileId', async (req, res) => {
   try {
-    const { fileId } = req.params;
+    const { fileId } = req.params
     
     // Get all documents
-    const documents = await chromaService.getAllDocuments();
+    const documents = await chromaService.getAllDocuments()
     
     // Find all chunk IDs for this file
-    const chunkIds = [];
+    const chunkIds = []
     if (documents.metadatas) {
       documents.metadatas.forEach((metadata, index) => {
         if (metadata.fileId === fileId) {
-          chunkIds.push(documents.ids[index]);
+          chunkIds.push(documents.ids[index])
         }
       });
     }
 
     // Delete all chunks
     for (const chunkId of chunkIds) {
-      await chromaService.deleteDocument(chunkId);
+      await chromaService.deleteDocument(chunkId)
     }
 
     res.json({
@@ -74,32 +74,32 @@ router.delete('/:fileId', async (req, res) => {
         fileId,
         chunksDeleted: chunkIds.length
       }
-    });
+    })
   } catch (error) {
-    routesLogger.error('Error deleting file:', error);
+    routesLogger.error('Error deleting file:', error)
     res.status(500).json({ 
       error: 'Failed to delete file', 
       message: error.message 
-    });
+    })
   }
-});
+})
 
 // Get file stats
 router.get('/stats', async (req, res) => {
   try {
-    const documents = await chromaService.getAllDocuments();
+    const documents = await chromaService.getAllDocuments()
     
-    const filesMap = new Map();
-    let totalChunks = 0;
+    const filesMap = new Map()
+    let totalChunks = 0
     
     if (documents.metadatas) {
-      totalChunks = documents.metadatas.length;
+      totalChunks = documents.metadatas.length
       documents.metadatas.forEach(metadata => {
-        const fileId = metadata.fileId;
+        const fileId = metadata.fileId
         if (!filesMap.has(fileId)) {
-          filesMap.set(fileId, true);
+          filesMap.set(fileId, true)
         }
-      });
+      })
     }
 
     res.json({
@@ -108,15 +108,15 @@ router.get('/stats', async (req, res) => {
         totalFiles: filesMap.size,
         totalChunks: totalChunks
       }
-    });
+    })
   } catch (error) {
-    routesLogger.error('Error getting stats:', error);
+    routesLogger.error('Error getting stats:', error)
     res.status(500).json({ 
       error: 'Failed to get stats', 
       message: error.message 
-    });
+    })
   }
-});
+})
 
-export default router;
+export default router
 

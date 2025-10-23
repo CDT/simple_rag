@@ -1,35 +1,35 @@
-import express from 'express';
-import chromaService from '../services/chromaService.js';
-import deepseekService from '../services/deepseekService.js';
-import { routesLogger } from '../config/logger.js';
+import express from 'express'
+import chromaService from '../services/chromaService.js'
+import deepseekService from '../services/deepseekService.js'
+import { routesLogger } from '../config/logger.js'
 
-const router = express.Router();
+const router = express.Router()
 
 router.post('/', async (req, res) => {
   try {
-    const { message, history = [] } = req.body;
+    const { message, history = [] } = req.body
 
     if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+      return res.status(400).json({ error: 'Message is required' })
     }
 
-    routesLogger.info(`Processing chat message: ${message}`);
+    routesLogger.info(`Processing chat message: ${message}`)
 
     // Generate embedding for the query
-    const queryEmbedding = await deepseekService.getEmbedding(message);
+    const queryEmbedding = await deepseekService.getEmbedding(message)
 
     // Query ChromaDB for relevant documents
-    const results = await chromaService.query(queryEmbedding, 5);
+    const results = await chromaService.query(queryEmbedding, 5)
 
     // Format context from retrieved documents
-    const context = [];
+    const context = []
     if (results.documents && results.documents[0]) {
       for (let i = 0; i < results.documents[0].length; i++) {
         context.push({
           document: results.documents[0][i],
           metadata: results.metadatas[0][i],
           distance: results.distances ? results.distances[0][i] : null
-        });
+        })
       }
     }
 
@@ -37,10 +37,10 @@ router.post('/', async (req, res) => {
     const messages = [
       ...history,
       { role: 'user', content: message }
-    ];
+    ]
 
     // Get response from DeepSeek
-    const response = await deepseekService.chat(messages, context);
+    const response = await deepseekService.chat(messages, context)
 
     res.json({
       success: true,
@@ -54,15 +54,15 @@ router.post('/', async (req, res) => {
         })),
         usage: response.usage
       }
-    });
+    })
   } catch (error) {
-    routesLogger.error('Error processing chat:', error);
+    routesLogger.error('Error processing chat:', error)
     res.status(500).json({ 
       error: 'Failed to process chat', 
       message: error.message 
-    });
+    })
   }
-});
+})
 
-export default router;
+export default router
 

@@ -1,9 +1,9 @@
-import log4js from 'log4js';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import log4js from 'log4js'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Configure log4js
 log4js.configure({
@@ -66,16 +66,16 @@ log4js.configure({
       level: 'info'
     }
   }
-});
+})
 
 // Create logger instances
 export const getLogger = (category = 'default') => {
-  return log4js.getLogger(category);
-};
+  return log4js.getLogger(category)
+}
 
-export const serverLogger = log4js.getLogger('server');
-export const routesLogger = log4js.getLogger('routes');
-export const servicesLogger = log4js.getLogger('services');
+export const serverLogger = log4js.getLogger('server')
+export const routesLogger = log4js.getLogger('routes')
+export const servicesLogger = log4js.getLogger('services')
 
-export default log4js;
+export default log4js
 

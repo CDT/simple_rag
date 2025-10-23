@@ -1,33 +1,33 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { servicesLogger } from '../config/logger.js';
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { servicesLogger } from '../config/logger.js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 class SettingsService {
   constructor() {
-    this.settingsPath = path.join(__dirname, '..', 'settings.json');
-    this.settings = null;
-    this.loadSettings();
+    this.settingsPath = path.join(__dirname, '..', 'settings.json')
+    this.settings = null
+    this.loadSettings()
   }
 
   loadSettings() {
     try {
       if (fs.existsSync(this.settingsPath)) {
-        const data = fs.readFileSync(this.settingsPath, 'utf8');
-        this.settings = JSON.parse(data);
-        servicesLogger.info('Settings loaded from settings.json');
+        const data = fs.readFileSync(this.settingsPath, 'utf8')
+        this.settings = JSON.parse(data)
+        servicesLogger.info('Settings loaded from settings.json')
       } else {
         // Create default settings if file doesn't exist
-        this.settings = this.getDefaultSettings();
-        this.saveSettings();
-        servicesLogger.info('Created default settings.json');
+        this.settings = this.getDefaultSettings()
+        this.saveSettings()
+        servicesLogger.info('Created default settings.json')
       }
     } catch (error) {
-      servicesLogger.error('Error loading settings:', error);
-      this.settings = this.getDefaultSettings();
+      servicesLogger.error('Error loading settings:', error)
+      this.settings = this.getDefaultSettings()
     }
   }
 
@@ -56,64 +56,64 @@ class SettingsService {
         temperature: 0.7,
         maxTokens: 2000
       }
-    };
+    }
   }
 
   getSettings() {
-    return this.settings;
+    return this.settings
   }
 
   getSetting(path) {
-    const keys = path.split('.');
-    let value = this.settings;
+    const keys = path.split('.')
+    let value = this.settings
     
     for (const key of keys) {
       if (value && typeof value === 'object' && key in value) {
-        value = value[key];
+        value = value[key]
       } else {
-        return undefined;
+        return undefined
       }
     }
     
-    return value;
+    return value
   }
 
   updateSettings(updates) {
     try {
       // Merge updates with existing settings
-      this.settings = this.deepMerge(this.settings, updates);
-      this.saveSettings();
-      servicesLogger.info('Settings updated successfully');
-      return true;
+      this.settings = this.deepMerge(this.settings, updates)
+      this.saveSettings()
+      servicesLogger.info('Settings updated successfully')
+      return true
     } catch (error) {
-      servicesLogger.error('Error updating settings:', error);
-      return false;
+      servicesLogger.error('Error updating settings:', error)
+      return false
     }
   }
 
   saveSettings() {
     try {
-      fs.writeFileSync(this.settingsPath, JSON.stringify(this.settings, null, 2));
-      servicesLogger.info('Settings saved to settings.json');
+      fs.writeFileSync(this.settingsPath, JSON.stringify(this.settings, null, 2))
+      servicesLogger.info('Settings saved to settings.json')
     } catch (error) {
-      servicesLogger.error('Error saving settings:', error);
-      throw error;
+      servicesLogger.error('Error saving settings:', error)
+      throw error
     }
   }
 
   // Deep merge utility function
   deepMerge(target, source) {
-    const result = { ...target };
+    const result = { ...target }
     
     for (const key in source) {
       if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-        result[key] = this.deepMerge(target[key] || {}, source[key]);
+        result[key] = this.deepMerge(target[key] || {}, source[key])
       } else {
-        result[key] = source[key];
+        result[key] = source[key]
       }
     }
     
-    return result;
+    return result
   }
 
   // Get settings in the format expected by the frontend
@@ -130,7 +130,7 @@ class SettingsService {
       apiBase: this.settings.api.apiBase,
       chromaPath: this.settings.database.chromaPath,
       port: this.settings.server.port
-    };
+    }
   }
 
   // Update settings from frontend format
@@ -159,10 +159,10 @@ class SettingsService {
         temperature: frontendSettings.temperature,
         maxTokens: frontendSettings.maxTokens
       }
-    };
+    }
 
-    return this.updateSettings(updates);
+    return this.updateSettings(updates)
   }
 }
 
-export default new SettingsService();
+export default new SettingsService()

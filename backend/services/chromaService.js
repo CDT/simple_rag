@@ -1,28 +1,23 @@
-import { ChromaClient } from 'chromadb';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { servicesLogger } from '../config/logger.js';
-import settingsService from './settingsService.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { ChromaClient } from 'chromadb'
+import { servicesLogger } from '../config/logger.js'
+import settingsService from './settingsService.js'
 
 class ChromaService {
   constructor() {
-    this.client = null;
-    this.collection = null;
-    this.initialized = false;
+    this.client = null
+    this.collection = null
+    this.initialized = false
   }
 
   async initialize() {
-    if (this.initialized) return;
+    if (this.initialized) return
 
     try {
       // Initialize ChromaDB client with local persistence
-      const chromaPath = settingsService.getSetting('database.chromaPath') || './chroma_db';
+      const chromaPath = settingsService.getSetting('database.chromaPath') || './chroma_db'
       this.client = new ChromaClient({
         path: chromaPath
-      });
+      })
 
       // Get or create collection
       try {
@@ -32,22 +27,22 @@ class ChromaService {
             description: 'RAG document collection',
             'hnsw:space': 'cosine'
           }
-        });
-        servicesLogger.info('ChromaDB collection initialized successfully');
+        })
+        servicesLogger.info('ChromaDB collection initialized successfully')
       } catch (error) {
-        servicesLogger.error('Error creating collection:', error);
-        throw error;
+        servicesLogger.error('Error creating collection:', error)
+        throw error
       }
 
-      this.initialized = true;
+      this.initialized = true
     } catch (error) {
-      servicesLogger.error('Error initializing ChromaDB:', error);
-      throw error;
+      servicesLogger.error('Error initializing ChromaDB:', error)
+      throw error
     }
   }
 
   async addDocuments(documents, embeddings, metadatas, ids) {
-    await this.initialize();
+    await this.initialize()
     
     try {
       await this.collection.add({
@@ -55,82 +50,82 @@ class ChromaService {
         embeddings: embeddings,
         documents: documents,
         metadatas: metadatas
-      });
-      servicesLogger.info(`Added ${documents.length} documents to ChromaDB`);
-      return true;
+      })
+      servicesLogger.info(`Added ${documents.length} documents to ChromaDB`)
+      return true
     } catch (error) {
-      servicesLogger.error('Error adding documents to ChromaDB:', error);
-      throw error;
+      servicesLogger.error('Error adding documents to ChromaDB:', error)
+      throw error
     }
   }
 
   async query(queryEmbedding, nResults = null) {
-    await this.initialize();
+    await this.initialize()
     
     try {
       // Use settings value if nResults not provided
-      const retrievalCount = nResults || settingsService.getSetting('processing.retrievalCount') || 5;
+      const retrievalCount = nResults || settingsService.getSetting('processing.retrievalCount') || 5
       
       const results = await this.collection.query({
         queryEmbeddings: [queryEmbedding],
         nResults: retrievalCount
-      });
+      })
       
-      return results;
+      return results
     } catch (error) {
-      servicesLogger.error('Error querying ChromaDB:', error);
-      throw error;
+      servicesLogger.error('Error querying ChromaDB:', error)
+      throw error
     }
   }
 
   async getAllDocuments() {
-    await this.initialize();
+    await this.initialize()
     
     try {
-      const results = await this.collection.get();
-      return results;
+      const results = await this.collection.get()
+      return results
     } catch (error) {
-      servicesLogger.error('Error getting all documents:', error);
-      throw error;
+      servicesLogger.error('Error getting all documents:', error)
+      throw error
     }
   }
 
   async deleteDocument(documentId) {
-    await this.initialize();
+    await this.initialize()
     
     try {
       await this.collection.delete({
         ids: [documentId]
-      });
-      servicesLogger.info(`Deleted document ${documentId} from ChromaDB`);
-      return true;
+      })
+      servicesLogger.info(`Deleted document ${documentId} from ChromaDB`)
+      return true
     } catch (error) {
-      servicesLogger.error('Error deleting document:', error);
-      throw error;
+      servicesLogger.error('Error deleting document:', error)
+      throw error
     }
   }
 
   async reset() {
-    await this.initialize();
+    await this.initialize()
     
     try {
-      await this.client.deleteCollection({ name: 'documents' });
+      await this.client.deleteCollection({ name: 'documents' })
       this.collection = await this.client.createCollection({
         name: 'documents',
         metadata: { 
           description: 'RAG document collection',
           'hnsw:space': 'cosine'
         }
-      });
-      servicesLogger.info('ChromaDB collection reset successfully');
-      return true;
+      })
+      servicesLogger.info('ChromaDB collection reset successfully')
+      return true
     } catch (error) {
-      servicesLogger.error('Error resetting ChromaDB:', error);
-      throw error;
+      servicesLogger.error('Error resetting ChromaDB:', error)
+      throw error
     }
   }
 }
 
 // Export singleton instance
-export default new ChromaService();
+export default new ChromaService()
 
