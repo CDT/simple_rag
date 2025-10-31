@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { serverLogger } from './config/logger.js'
 import settingsService from './services/settingsService.js'
-import chromaService, { startChromaDB, shutdownChromaDB } from './services/chromaService.js'
+import chromaService from './services/chromaService.js'
 
 // Import routes
 import ingestRouter from './routes/ingest.js'
@@ -38,10 +38,9 @@ app.use((err, req, res, next) => {
   })
 })
 
-// Start ChromaDB, initialize ChromaService, and then start the Express server
-startChromaDB()
-  .then(async () => {
-    // Initialize ChromaService
+// Initialize ChromaService and start the Express server
+async function startServer() {
+  try {
     serverLogger.info('Initializing ChromaService...')
     await chromaService.initialize()
     serverLogger.info('ChromaService initialized successfully')
@@ -49,19 +48,17 @@ startChromaDB()
     app.listen(PORT, () => {
       serverLogger.info(`Server is running on http://localhost:${PORT}`)
     })
-  })
-  .catch((error) => {
+  } catch (error) {
     serverLogger.error('Failed to start server:', error)
-    shutdownChromaDB()
     process.exit(1)
-  })
+  }
+}
+
+startServer()
 
 // Handle graceful shutdown
 function gracefulShutdown(signal) {
   serverLogger.info(`${signal} received, shutting down gracefully...`)
-  
-  // Shutdown ChromaDB
-  shutdownChromaDB()
   
   // Give it some time to cleanup then exit
   setTimeout(() => {
