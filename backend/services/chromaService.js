@@ -1,7 +1,24 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { ChromaClient } from 'chromadb'
 import { servicesLogger } from '../config/logger.js'
 import settingsService from './settingsService.js'
 
+// Get the directory of the current file (for ES modules)
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Create chroma_db directory in the backend folder
+const chromaDir = path.join(__dirname, '..', 'chroma_db')
+if (!fs.existsSync(chromaDir)) {
+  fs.mkdirSync(chromaDir, { recursive: true })
+  servicesLogger.info(`Created chroma_db directory at: ${chromaDir}`)
+} else {
+  servicesLogger.info(`Using chroma_db directory at: ${chromaDir}`)
+}
+
+// ChromaDB Service Class
 class ChromaService {
   constructor() {
     this.client = null
@@ -10,8 +27,6 @@ class ChromaService {
   }
 
   async initialize() {
-    if (this.initialized) return
-
     try {
       // Initialize ChromaDB client - connects to ChromaDB server
       const chromaUrl = settingsService.getSetting('database.chromaUrl') || 'http://localhost:8000'
@@ -21,27 +36,16 @@ class ChromaService {
 
       // Get or create collection
       // Note: We provide pre-computed embeddings, so we don't need ChromaDB's embedding function
-      try {
-        this.collection = await this.client.getOrCreateCollection({
-          name: 'documents',
-          metadata: { 
-            description: 'RAG document collection',
-            'hnsw:space': 'cosine'
-          },
-          embeddingFunction: {
-            generate: async (texts) => {
-              // We provide embeddings externally, so this is a no-op
-              // Return empty arrays as ChromaDB won't call this when embeddings are provided
-              return texts.map(() => [])
-            }
-          }
-        })
-        servicesLogger.info('ChromaDB collection initialized successfully')
-      } catch (error) {
-        servicesLogger.error('Error creating collection:', error)
-        throw error
-      }
-
+      // For ChromaDB 1.x, embeddingFunction is optional when providing embeddings directly
+      this.collection = await this.client.getOrCreateCollection({
+        name: 'documents',
+        metadata: { 
+          description: 'RAG document collection',
+          'hnsw:space': 'cosine'
+        }
+      })
+      
+      servicesLogger.info('ChromaDB collection initialized successfully')
       this.initialized = true
     } catch (error) {
       servicesLogger.error('Error initializing ChromaDB:', error)
@@ -50,8 +54,6 @@ class ChromaService {
   }
 
   async addDocuments(documents, embeddings, metadatas, ids) {
-    await this.initialize()
-    
     try {
       await this.collection.add({
         ids: ids,
@@ -68,8 +70,6 @@ class ChromaService {
   }
 
   async query(queryEmbedding, nResults = null) {
-    await this.initialize()
-    
     try {
       // Use settings value if nResults not provided
       const retrievalCount = nResults || settingsService.getSetting('processing.retrievalCount') || 5
@@ -87,8 +87,6 @@ class ChromaService {
   }
 
   async getAllDocuments() {
-    await this.initialize()
-    
     try {
       const results = await this.collection.get()
       return results
@@ -99,8 +97,6 @@ class ChromaService {
   }
 
   async deleteDocument(documentId) {
-    await this.initialize()
-    
     try {
       await this.collection.delete({
         ids: [documentId]
@@ -114,8 +110,6 @@ class ChromaService {
   }
 
   async reset() {
-    await this.initialize()
-    
     try {
       await this.client.deleteCollection({ name: 'documents' })
       this.collection = await this.client.createCollection({
@@ -123,12 +117,6 @@ class ChromaService {
         metadata: { 
           description: 'RAG document collection',
           'hnsw:space': 'cosine'
-        },
-        embeddingFunction: {
-          generate: async (texts) => {
-            // We provide embeddings externally, so this is a no-op
-            return texts.map(() => [])
-          }
         }
       })
       servicesLogger.info('ChromaDB collection reset successfully')
@@ -141,5 +129,6 @@ class ChromaService {
 }
 
 // Export singleton instance
-export default new ChromaService()
+const chromaServiceInstance = new ChromaService()
+export default chromaServiceInstance
 
