@@ -19,7 +19,7 @@ log4js.configure({
       filename: path.join(__dirname, '../logs/app'),
       pattern: '-yyyy-MM-dd.log',
       alwaysIncludePattern: true,
-      daysToKeep: 7,
+      numBackups: 7,
       keepFileExt: true,
       layout: {
         type: 'pattern',
@@ -33,7 +33,7 @@ log4js.configure({
       filename: path.join(__dirname, '../logs/error'),
       pattern: '-yyyy-MM-dd.log',
       alwaysIncludePattern: true,
-      daysToKeep: 7,
+      numBackups: 7,
       keepFileExt: true,
       layout: {
         type: 'pattern',

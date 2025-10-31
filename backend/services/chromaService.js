@@ -30,8 +30,15 @@ class ChromaService {
     try {
       // Initialize ChromaDB client - connects to ChromaDB server
       const chromaUrl = settingsService.getSetting('database.chromaUrl') || 'http://localhost:8000'
+      
+      // Parse URL to extract host and port
+      const url = new URL(chromaUrl)
+      const host = url.hostname
+      const port = url.port ? parseInt(url.port) : (url.protocol === 'https:' ? 443 : 80)
+      
       this.client = new ChromaClient({
-        path: chromaUrl
+        host: host,
+        port: port
       })
 
       // Get or create collection
