@@ -13,19 +13,27 @@ class ChromaService {
     if (this.initialized) return
 
     try {
-      // Initialize ChromaDB client with local persistence
-      const chromaPath = settingsService.getSetting('database.chromaPath') || './chroma_db'
+      // Initialize ChromaDB client - connects to ChromaDB server
+      const chromaUrl = settingsService.getSetting('database.chromaUrl') || 'http://localhost:8000'
       this.client = new ChromaClient({
-        path: chromaPath
+        path: chromaUrl
       })
 
       // Get or create collection
+      // Note: We provide pre-computed embeddings, so we don't need ChromaDB's embedding function
       try {
         this.collection = await this.client.getOrCreateCollection({
           name: 'documents',
           metadata: { 
             description: 'RAG document collection',
             'hnsw:space': 'cosine'
+          },
+          embeddingFunction: {
+            generate: async (texts) => {
+              // We provide embeddings externally, so this is a no-op
+              // Return empty arrays as ChromaDB won't call this when embeddings are provided
+              return texts.map(() => [])
+            }
           }
         })
         servicesLogger.info('ChromaDB collection initialized successfully')
@@ -115,6 +123,12 @@ class ChromaService {
         metadata: { 
           description: 'RAG document collection',
           'hnsw:space': 'cosine'
+        },
+        embeddingFunction: {
+          generate: async (texts) => {
+            // We provide embeddings externally, so this is a no-op
+            return texts.map(() => [])
+          }
         }
       })
       servicesLogger.info('ChromaDB collection reset successfully')
