@@ -14,29 +14,36 @@ export const getAllFiles = async (req, res) => {
     
     // Group by fileId to get unique files
     const filesMap = new Map()
+    const collectionsSet = new Set()
     
     if (documents.metadatas) {
       documents.metadatas.forEach((metadata, index) => {
         const fileId = metadata.fileId
+        const collection = metadata.collection || 'Uncategorized'
+        collectionsSet.add(collection)
+        
         if (!filesMap.has(fileId)) {
           filesMap.set(fileId, {
             fileId: fileId,
             fileName: fixUnicodeEncoding(metadata.fileName),
             storedFileName: metadata.storedFileName || '', // Include stored filename for download links
             chunkCount: metadata.totalChunks,
-            uploadDate: metadata.uploadDate
+            uploadDate: metadata.uploadDate,
+            collection: collection
           })
         }
       });
     }
 
     const files = Array.from(filesMap.values())
+    const collections = Array.from(collectionsSet).sort()
 
     res.json({
       success: true,
       data: {
         files,
-        totalFiles: files.length
+        totalFiles: files.length,
+        collections
       }
     })
   } catch (error) {

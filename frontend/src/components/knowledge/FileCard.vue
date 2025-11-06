@@ -5,6 +5,7 @@
       <div>
         <p class="font-medium text-gray-800 dark:text-gray-100">{{ fileName }}</p>
         <p class="text-sm text-gray-500 dark:text-gray-400">
+          <span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs mr-2">{{ collection }}</span>
           {{ chunkCount }} 个片段 • 上传于 {{ formattedDate }}
         </p>
       </div>
@@ -41,6 +42,7 @@ interface Props {
   storedFileName: string
   chunkCount: number
   uploadDate: string
+  collection: string
   isDeleting?: boolean
 }
 

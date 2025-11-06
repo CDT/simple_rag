@@ -10,11 +10,17 @@ export const handleIngest = async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' })
     }
 
+    // Get collection from request body
+    const collection = req.body.collection
+    if (!collection || collection.trim() === '') {
+      return res.status(400).json({ error: 'Collection is required' })
+    }
+
     // Properly decode the filename from buffer to handle UTF-8 characters (Chinese, etc.)
     const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8')
     const filePath = req.file.path
     
-    routesLogger.info(`Processing file: ${originalname}`)
+    routesLogger.info(`Processing file: ${originalname} for collection: ${collection}`)
 
     // Process document
     const processed = await documentProcessorService.processDocument(filePath, originalname)
@@ -37,7 +43,8 @@ export const handleIngest = async (req, res) => {
       fileId: fileId,
       chunkIndex: index,
       totalChunks: processed.chunks.length,
-      uploadDate: new Date().toISOString()
+      uploadDate: new Date().toISOString(),
+      collection: collection.trim()
     }))
 
     // Store in ChromaDB

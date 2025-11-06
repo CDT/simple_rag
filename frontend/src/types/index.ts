@@ -24,6 +24,7 @@ export interface FileInfo {
   storedFileName: string
   chunkCount: number
   uploadDate: string
+  collection: string
 }
 
 export interface UploadStatus {
