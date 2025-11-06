@@ -5,10 +5,7 @@ import settingsService from './services/settingsService.js'
 import chromaService from './services/chromaService.js'
 
 // Import routes
-import ingestRouter from './routes/ingest.js'
-import chatRouter from './routes/chat.js'
-import filesRouter from './routes/files.js'
-import settingsRouter from './routes/settings.js'
+import router from './routes.js'
 
 const app = express()
 const PORT = settingsService.getSetting('server.port') || 3000
@@ -19,10 +16,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Routes
-app.use('/api/ingest', ingestRouter)
-app.use('/api/chat', chatRouter)
-app.use('/api/files', filesRouter)
-app.use('/api/settings', settingsRouter)
+app.use('/api', router)
 
 // Health check
 app.get('/api/health', (req, res) => {

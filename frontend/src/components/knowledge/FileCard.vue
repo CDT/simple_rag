@@ -10,23 +10,35 @@
       </div>
     </div>
     
-    <BaseButton
-      variant="danger"
-      size="md"
-      :loading="isDeleting"
-      @click="$emit('delete')"
-    >
-      {{ isDeleting ? '删除中...' : '删除' }}
-    </BaseButton>
+    <div class="flex items-center space-x-2">
+      <a 
+        v-if="storedFileName"
+        :href="downloadUrl"
+        target="_blank"
+        class="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
+      >
+        下载
+      </a>
+      <BaseButton
+        variant="danger"
+        size="md"
+        :loading="isDeleting"
+        @click="$emit('delete')"
+      >
+        {{ isDeleting ? '删除中...' : '删除' }}
+      </BaseButton>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import BaseButton from '../base/BaseButton.vue'
+import { API_URL } from '../../../config'
 
 interface Props {
   fileName: string
+  storedFileName: string
   chunkCount: number
   uploadDate: string
   isDeleting?: boolean
@@ -37,6 +49,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 defineEmits(['delete'])
+
+const downloadUrl = computed(() => {
+  if (!props.storedFileName) return ''
+  return `${API_URL}/api/files/download/${encodeURIComponent(props.storedFileName)}`
+})
 
 const icon = computed(() => {
   const ext = props.fileName.split('.').pop()?.toLowerCase()

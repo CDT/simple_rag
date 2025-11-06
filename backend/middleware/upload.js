@@ -18,16 +18,20 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
+    // Properly decode the filename from buffer to handle UTF-8 characters
+    const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, uniqueSuffix + '-' + file.originalname)
+    cb(null, uniqueSuffix + '-' + originalname)
   }
 })
 
 export const upload = multer({ 
   storage: storage,
   fileFilter: (req, file, cb) => {
+    // Properly decode the filename from buffer to handle UTF-8 characters
+    const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
     const allowedTypes = ['.txt', '.pdf', '.docx']
-    const ext = path.extname(file.originalname).toLowerCase()
+    const ext = path.extname(originalname).toLowerCase()
     if (allowedTypes.includes(ext)) {
       cb(null, true)
     } else {

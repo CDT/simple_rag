@@ -54,6 +54,7 @@
             v-for="file in files"
             :key="file.fileId"
             :file-name="file.fileName"
+            :stored-file-name="file.storedFileName"
             :chunk-count="file.chunkCount"
             :upload-date="file.uploadDate"
             :is-deleting="isDeletingFile === file.fileId"

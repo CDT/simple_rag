@@ -21,6 +21,7 @@ export interface FileItem {
 export interface FileInfo {
   fileId: string
   fileName: string
+  storedFileName: string
   chunkCount: number
   uploadDate: string
 }

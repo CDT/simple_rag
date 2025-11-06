@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { toastService } from '../composables/useToast'
+import { API_URL } from '../../config'
 
 // HTTP Service class
 class HttpService {
@@ -10,7 +11,8 @@ class HttpService {
       timeout: 10000, // 10 seconds default timeout
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      baseURL: API_URL
     })
 
     // Request interceptor
