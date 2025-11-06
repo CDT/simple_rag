@@ -1,16 +1,18 @@
 import express from 'express'
 import { upload } from './middleware/upload.js'
+import { handleChat } from './handlers/chatHandler.js'
 import { 
-  handleChat,
   getAllFiles, 
   downloadFile,
   deleteFile, 
-  getFileStats,
-  handleIngest,
+  getFileStats
+} from './handlers/fileHandler.js'
+import { handleIngest } from './handlers/ingestHandler.js'
+import { 
   getSettings, 
   updateSettings, 
   resetDatabase 
-} from './handlers/handlers.js'
+} from './handlers/settingsHandler.js'
 
 const router = express.Router()
 

@@ -84,6 +84,7 @@ const isUploading = ref(false)
 const selectedFile = ref<File | null>(null)
 const uploadResult = ref<{ success: boolean; message: string } | null>(null)
 const isDeletingFile = ref<string | null>(null)
+const collectionName = ref('')
 
 const loadFiles = async () => {
   isLoadingFiles.value = true
