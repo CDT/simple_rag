@@ -12,7 +12,7 @@ export const getSettings = (req, res) => {
   } catch (error) {
     routesLogger.error('Error getting settings:', error)
     res.status(500).json({ 
-      error: 'Failed to get settings', 
+      error: '获取设置失败', 
       message: error.message 
     })
   }
@@ -32,19 +32,19 @@ export const updateSettings = (req, res) => {
       const updatedSettings = settingsService.getFrontendSettings()
       res.json({
         success: true,
-        message: 'Settings updated successfully',
+        message: '设置更新成功',
         data: updatedSettings
       })
     } else {
       res.status(500).json({ 
-        error: 'Failed to update settings', 
-        message: 'Could not save settings to file' 
+        error: '更新设置失败', 
+        message: '无法保存设置到文件' 
       })
     }
   } catch (error) {
     routesLogger.error('Error updating settings:', error)
     res.status(500).json({ 
-      error: 'Failed to update settings', 
+      error: '更新设置失败', 
       message: error.message 
     })
   }
@@ -56,12 +56,12 @@ export const resetDatabase = async (req, res) => {
     
     res.json({
       success: true,
-      message: 'Database reset successfully'
+      message: '数据库重置成功'
     })
   } catch (error) {
     routesLogger.error('Error resetting database:', error)
     res.status(500).json({ 
-      error: 'Failed to reset database', 
+      error: '重置数据库失败', 
       message: error.message 
     })
   }

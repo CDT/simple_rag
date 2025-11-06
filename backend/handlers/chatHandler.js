@@ -8,7 +8,7 @@ export const handleChat = async (req, res) => {
     const { message, history = [] } = req.body
 
     if (!message) {
-      return res.status(400).json({ error: 'Message is required' })
+      return res.status(400).json({ error: '需要提供消息' })
     }
 
     routesLogger.info(`Processing chat message: ${message}`)
@@ -56,7 +56,7 @@ export const handleChat = async (req, res) => {
   } catch (error) {
     routesLogger.error('Error processing chat:', error)
     res.status(500).json({ 
-      error: 'Failed to process chat', 
+      error: '处理聊天失败', 
       message: error.message 
     })
   }

@@ -27,6 +27,7 @@ export const getAllFiles = async (req, res) => {
             fileId: fileId,
             fileName: fixUnicodeEncoding(metadata.fileName),
             storedFileName: metadata.storedFileName || '', // Include stored filename for download links
+            fileHash: metadata.fileHash || '', // Include file hash for duplicate detection
             chunkCount: metadata.totalChunks,
             uploadDate: metadata.uploadDate,
             collection: collection
@@ -49,7 +50,7 @@ export const getAllFiles = async (req, res) => {
   } catch (error) {
     routesLogger.error('Error getting files:', error)
     res.status(500).json({ 
-      error: 'Failed to get files', 
+      error: '获取文件失败', 
       message: error.message 
     })
   }
@@ -60,14 +61,14 @@ export const downloadFile = async (req, res) => {
     const { storedFileName } = req.params
     
     if (!storedFileName) {
-      return res.status(400).json({ error: 'Stored filename is required' })
+      return res.status(400).json({ error: '需要存储的文件名' })
     }
 
     const filePath = path.join(__dirname, '../uploads', storedFileName)
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: 'File not found' })
+      return res.status(404).json({ error: '文件未找到' })
     }
 
     // Get the original filename from metadata
@@ -89,7 +90,7 @@ export const downloadFile = async (req, res) => {
   } catch (error) {
     routesLogger.error('Error downloading file:', error)
     res.status(500).json({ 
-      error: 'Failed to download file', 
+      error: '下载文件失败', 
       message: error.message 
     })
   }
@@ -132,7 +133,7 @@ export const deleteFile = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'File deleted successfully',
+      message: '文件删除成功',
       data: {
         fileId,
         chunksDeleted: chunkIds.length
@@ -141,7 +142,7 @@ export const deleteFile = async (req, res) => {
   } catch (error) {
     routesLogger.error('Error deleting file:', error)
     res.status(500).json({ 
-      error: 'Failed to delete file', 
+      error: '删除文件失败', 
       message: error.message 
     })
   }
@@ -174,7 +175,7 @@ export const getFileStats = async (req, res) => {
   } catch (error) {
     routesLogger.error('Error getting stats:', error)
     res.status(500).json({ 
-      error: 'Failed to get stats', 
+      error: '获取统计信息失败', 
       message: error.message 
     })
   }

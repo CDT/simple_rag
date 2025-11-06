@@ -22,6 +22,7 @@ export interface FileInfo {
   fileId: string
   fileName: string
   storedFileName: string
+  fileHash: string
   chunkCount: number
   uploadDate: string
   collection: string
