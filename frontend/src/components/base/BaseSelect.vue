@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <div class="flex items-center gap-4">
     <!-- Label -->
-    <label v-if="label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    <label v-if="label" class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
       {{ label }}
       <span v-if="required" class="text-red-500">*</span>
     </label>
 
-    <div class="relative" ref="selectRef">
+    <div class="relative flex-1" ref="selectRef">
       <!-- Creatable input -->
       <div v-if="creatable" class="relative">
         <input

@@ -5,19 +5,19 @@ import { fixUnicodeEncoding } from '../utils.js'
 
 export const handleChat = async (req, res) => {
   try {
-    const { message, history = [] } = req.body
+    const { message, history = [], collection } = req.body
 
     if (!message) {
       return res.status(400).json({ error: '需要提供消息' })
     }
 
-    routesLogger.info(`Processing chat message: ${message}`)
+    routesLogger.info(`Processing chat message: ${message}${collection ? ` for collection: ${collection}` : ''}`)
 
     // Generate embedding for the query
     const queryEmbedding = await deepseekService.getEmbedding(message)
 
-    // Query ChromaDB for relevant documents
-    const results = await chromaService.query(queryEmbedding, 5)
+    // Query ChromaDB for relevant documents (with optional collection filter)
+    const results = await chromaService.query(queryEmbedding, 5, collection)
 
     // Format context from retrieved documents
     const context = []

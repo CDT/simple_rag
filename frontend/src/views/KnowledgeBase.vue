@@ -22,7 +22,7 @@
             placeholder="输入新集合名称或选择现有集合"
             :disabled="isUploading"
             required
-            class="mb-4 flex items-center gap-2"
+            class="mb-4 max-w-md"
             creatable
             clearable
           />

@@ -4,7 +4,19 @@
     <BasePageHeader 
       title="对话" 
       subtitle="向您的文档提问"
-    />
+    >
+      <template #actions>
+        <div class="w-64">
+          <BaseSelect
+            v-model="selectedCollection"
+            :options="collections"
+            placeholder="全部集合"
+            clearable
+            label="知识库："
+          />
+        </div>
+      </template>
+    </BasePageHeader>
 
     <!-- Chat messages -->
     <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 dark:bg-gray-900 transition-colors" ref="chatContainer">
@@ -66,18 +78,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { httpService } from '../services/httpService'
 import type { Message } from '../types'
 import BasePageHeader from '../components/base/BasePageHeader.vue'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseButton from '../components/base/BaseButton.vue'
+import BaseSelect from '../components/base/BaseSelect.vue'
 import ChatMessage from '../components/chat/ChatMessage.vue'
 
 const messages = ref<Message[]>([])
 const newMessage = ref('')
 const isLoading = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
+const selectedCollection = ref<string | number>('')
+const collections = ref<string[]>([])
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -85,6 +100,17 @@ const scrollToBottom = () => {
       chatContainer.value.scrollTop = chatContainer.value.scrollHeight
     }
   })
+}
+
+const fetchCollections = async () => {
+  try {
+    const response = await httpService.get('/api/files')
+    if (response.data.success && response.data.data.collections) {
+      collections.value = response.data.data.collections
+    }
+  } catch (error) {
+    console.error('Error fetching collections:', error)
+  }
 }
 
 const sendMessage = async () => {
@@ -112,7 +138,8 @@ const sendMessage = async () => {
 
     const response = await httpService.post('/api/chat', {
       message: messageToSend,
-      history
+      history,
+      collection: selectedCollection.value || undefined
     })
 
     const assistantMessage: Message = {
@@ -142,5 +169,9 @@ const clearChat = () => {
     messages.value = []
   }
 }
+
+onMounted(() => {
+  fetchCollections()
+})
 </script>
 

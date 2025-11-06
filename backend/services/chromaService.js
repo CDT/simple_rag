@@ -76,15 +76,22 @@ class ChromaService {
     }
   }
 
-  async query(queryEmbedding, nResults = null) {
+  async query(queryEmbedding, nResults = null, collection = null) {
     try {
       // Use settings value if nResults not provided
       const retrievalCount = nResults || settingsService.getSetting('processing.retrievalCount') || 5
       
-      const results = await this.collection.query({
+      const queryParams = {
         queryEmbeddings: [queryEmbedding],
         nResults: retrievalCount
-      })
+      }
+
+      // Add collection filter if provided
+      if (collection) {
+        queryParams.where = { collection: collection }
+      }
+      
+      const results = await this.collection.query(queryParams)
       
       return results
     } catch (error) {
