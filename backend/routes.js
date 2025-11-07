@@ -1,6 +1,6 @@
 import express from 'express'
 import { upload } from './middleware/upload.js'
-import { handleChat } from './handlers/chatHandler.js'
+import { handleChat, handleChatStream } from './handlers/chatHandler.js'
 import { 
   getAllFiles, 
   downloadFile,
@@ -18,6 +18,7 @@ const router = express.Router()
 
 // Chat routes
 router.post('/chat', handleChat)
+router.post('/chat/stream', handleChatStream)
 
 // File routes
 router.get('/files', getAllFiles)

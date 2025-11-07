@@ -88,6 +88,97 @@ class DeepSeekService {
       throw error
     }
   }
+
+  async *chatStream(messages, context = null) {
+    try {
+      // Update config in case settings changed
+      this.updateConfig()
+      
+      // Prepare system message with context
+      let systemMessage = 'You are a helpful assistant.'
+      if (context && context.length > 0) {
+        const contextText = context.map(doc => doc.document).join('\n\n')
+        systemMessage = `You are a helpful assistant. Use the following context to answer questions. If the answer cannot be found in the context, say so.\n\nContext:\n${contextText}`
+      }
+
+      const fullMessages = [
+        { role: 'system', content: systemMessage },
+        ...messages
+      ]
+
+      const temperature = settingsService.getSetting('model.temperature') || 0.7
+      const maxTokens = settingsService.getSetting('model.maxTokens') || 2000
+
+      const response = await fetch(
+        `${this.apiBase}/chat/completions`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: fullMessages,
+            temperature: temperature,
+            max_tokens: maxTokens,
+            stream: true
+          })
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        servicesLogger.error('Error from DeepSeek API:', errorData)
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          if (!trimmedLine || trimmedLine === 'data: [DONE]') continue
+          
+          if (trimmedLine.startsWith('data: ')) {
+            try {
+              const jsonStr = trimmedLine.substring(6)
+              const data = JSON.parse(jsonStr)
+              
+              if (data.choices && data.choices[0]?.delta?.content) {
+                yield {
+                  type: 'content',
+                  content: data.choices[0].delta.content
+                }
+              }
+
+              if (data.usage) {
+                yield {
+                  type: 'usage',
+                  usage: data.usage
+                }
+              }
+            } catch (e) {
+              servicesLogger.error('Error parsing SSE data:', e)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      servicesLogger.error('Error streaming from DeepSeek API:', error.message)
+      throw error
+    }
+  }
 }
 
 export default new DeepSeekService()

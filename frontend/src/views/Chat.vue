@@ -33,15 +33,8 @@
         :role="message.role"
         :content="message.content"
         :sources="message.sources"
+        :isStreaming="message.isStreaming"
       />
-
-      <div v-if="chatStore.isLoading" class="flex justify-start">
-        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg px-4 py-3 text-gray-800 dark:text-gray-100 transition-colors">
-          <div class="flex items-center space-x-2">
-            <div class="animate-pulse">思考中...</div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Input area -->
@@ -78,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, watch } from 'vue'
 import { useChatStore } from '../stores'
 import BasePageHeader from '../components/base/BasePageHeader.vue'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
@@ -98,6 +91,15 @@ const scrollToBottom = () => {
     }
   })
 }
+
+// Auto-scroll when messages change (for streaming updates)
+watch(
+  () => chatStore.messages,
+  () => {
+    scrollToBottom()
+  },
+  { deep: true }
+)
 
 const sendMessage = async () => {
   if (!newMessage.value.trim() || chatStore.isLoading) return

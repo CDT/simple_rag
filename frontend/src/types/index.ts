@@ -3,6 +3,7 @@ export interface Message {
   content: string
   sources?: Source[]
   timestamp?: number
+  isStreaming?: boolean
 }
 
 export interface Source {

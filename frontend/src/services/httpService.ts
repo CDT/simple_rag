@@ -38,24 +38,7 @@ class HttpService {
   }
 
   private handleError(error: any) {
-    let message = '网络请求出现错误'
-
-    if (error.response) {
-      // Server responded with error status
-      const data = error.response.data
-      message = data?.message || `服务器错误 (${error.response.status})`
-    } else if (error.request) {
-      // Network error
-      message = '无法连接到服务器，请检查网络连接'
-    } else if (error.code === 'ECONNABORTED') {
-      // Timeout error
-      message = '请求超时，请稍后重试'
-    } else {
-      // Other errors
-      message = error.message || '未知错误'
-    }
-
-    toastService.error('请求失败', message)
+    toastService.error('请求失败', error.message)
   }
 
   // HTTP methods

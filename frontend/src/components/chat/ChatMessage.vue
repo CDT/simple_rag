@@ -23,12 +23,32 @@
       class="max-w-2xl rounded-lg px-4 py-3 transition-colors"
       :class="messageClasses"
     >
-      <div class="whitespace-pre-wrap">{{ content }}</div>
+      <!-- Loading indicator when streaming with no content yet -->
+      <div v-if="isStreaming && !content" class="flex items-center space-x-2">
+        <div class="animate-pulse">思考中...</div>
+      </div>
       
-      <!-- Sources -->
+      <div v-if="content" class="whitespace-pre-wrap">{{ content }}</div>
+      
+      <!-- Sources (Collapsible) -->
       <div v-if="sources && sources.length > 0" class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-        <p class="text-xs font-semibold mb-2 opacity-75">来源：</p>
-        <div class="space-y-2">
+        <button
+          @click="toggleSources"
+          class="flex items-center justify-between w-full text-xs font-semibold mb-2 opacity-75 hover:opacity-100 transition-opacity"
+        >
+          <span>来源 ({{ sources.length }})</span>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            class="h-4 w-4 transition-transform"
+            :class="{ 'rotate-180': showSources }"
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="showSources" class="space-y-2">
           <div
             v-for="(source, idx) in sources"
             :key="idx"
@@ -75,13 +95,19 @@ interface Props {
   role: 'user' | 'assistant'
   content: string
   sources?: Source[]
+  isStreaming?: boolean
 }
 
 const props = defineProps<Props>()
 
 const isUser = computed(() => props.role === 'user')
 const copied = ref(false)
+const showSources = ref(false) // Collapsed by default
 const { success, error } = useToast()
+
+const toggleSources = () => {
+  showSources.value = !showSources.value
+}
 
 const messageClasses = computed(() => {
   return isUser.value
