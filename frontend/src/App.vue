@@ -4,7 +4,7 @@
     <AppSidebar
       :menu-items="menuItems"
       :is-dark="isDark"
-      :is-connected="isConnected"
+      :is-connected="appStore.isConnected"
       @toggle-dark-mode="toggleDarkMode"
     />
 
@@ -19,8 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { httpService } from './services/httpService'
+import { onMounted } from 'vue'
+import { useAppStore } from './stores'
 import { useDarkMode } from './composables/useDarkMode'
 import { AppSidebar } from './components'
 import Toast from './components/Toast.vue'
@@ -31,22 +31,13 @@ const menuItems = [
   { name: '设置', path: '/settings', icon: '⚙️' }
 ]
 
-const isConnected = ref(false)
+const appStore = useAppStore()
 const { isDark, toggleDarkMode, initDarkMode } = useDarkMode()
-
-const checkConnection = async () => {
-  try {
-    await httpService.get('/api/health')
-    isConnected.value = true
-  } catch (error) {
-    isConnected.value = false
-  }
-}
 
 onMounted(() => {
   initDarkMode()
-  checkConnection()
-  setInterval(checkConnection, 30000) // Check every 30 seconds
+  appStore.checkConnection()
+  setInterval(() => appStore.checkConnection(), 30000) // Check every 30 seconds
 })
 </script>
 

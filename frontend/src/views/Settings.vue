@@ -13,26 +13,26 @@
         <BaseCard title="API 配置" icon="🔑">
           <div class="space-y-4">
             <BaseInput
-              v-model="settings.apiProvider"
+              v-model="settingsStore.settings.apiProvider"
               label="API Provider"
               disabled
             />
 
             <BaseInput
-              v-model="settings.apiBase"
+              v-model="settingsStore.settings.apiBase"
               label="DeepSeek API Base URL"
               placeholder="https://api.deepseek.com/v1"
             />
 
             <BaseInput
-              v-model="settings.apiKey"
+              v-model="settingsStore.settings.apiKey"
               label="DeepSeek API 密钥"
               placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
               hint="从 platform.deepseek.com 获取您的 API 密钥"
             />
 
             <RangeSlider
-              v-model="settings.temperature"
+              v-model="settingsStore.settings.temperature"
               label="Temperature"
               :min="0"
               :max="1"
@@ -42,7 +42,7 @@
             />
 
             <NumberInput
-              v-model="settings.maxTokens"
+              v-model="settingsStore.settings.maxTokens"
               label="最大Token数"
               :min="100"
               :max="4000"
@@ -55,13 +55,13 @@
         <BaseCard title="Embedding配置" icon="🧩" class="mt-6">
           <div class="space-y-4">
             <NumberInput
-              v-model="settings.embeddingDimensions"
+              v-model="settingsStore.settings.embeddingDimensions"
               label="Embedding维度"
               disabled
             />
 
             <NumberInput
-              v-model="settings.chunkSize"
+              v-model="settingsStore.settings.chunkSize"
               label="Chunk大小（词数）"
               :min="100"
               :max="1000"
@@ -69,7 +69,7 @@
             />
 
             <NumberInput
-              v-model="settings.chunkOverlap"
+              v-model="settingsStore.settings.chunkOverlap"
               label="Overlapping大小（词数）"
               :min="0"
               :max="200"
@@ -77,7 +77,7 @@
             />
 
             <NumberInput
-              v-model="settings.retrievalCount"
+              v-model="settingsStore.settings.retrievalCount"
               label="检索数量"
               hint="每次查询检索的文档片段数量"
               :min="1"
@@ -90,7 +90,7 @@
         <BaseCard title="服务器配置" icon="⚙️" class="mt-6">
           <div class="space-y-4">
             <NumberInput
-              v-model="portValue"
+              v-model="settingsStore.portValue"
               label="服务器端口"
               :min="1000"
               :max="65535"
@@ -103,7 +103,7 @@
         <BaseCard title="数据库配置" icon="🗄️" class="mt-6">
           <div class="space-y-4">
             <BaseInput
-              v-model="settings.chromaPath"
+              v-model="settingsStore.settings.chromaPath"
               label="ChromaDB 存储路径"
               placeholder="./chroma_db"
               hint="ChromaDB 数据库文件的存储位置"
@@ -118,10 +118,10 @@
               variant="danger"
               size="lg"
               full-width
-              :loading="isResetting"
+              :loading="settingsStore.isResetting"
               @click="resetDatabase"
             >
-              {{ isResetting ? '重置中...' : '重置数据库' }}
+              {{ settingsStore.isResetting ? '重置中...' : '重置数据库' }}
             </BaseButton>
           </div>
         </BaseCard>
@@ -136,18 +136,18 @@
           </BaseButton>
           <BaseButton
             variant="primary"
-            :loading="isSaving"
+            :loading="settingsStore.isSaving"
             @click="saveSettings"
           >
-            {{ isSaving ? '保存中...' : '保存设置' }}
+            {{ settingsStore.isSaving ? '保存中...' : '保存设置' }}
           </BaseButton>
         </div>
 
         <!-- Save result -->
         <BaseAlert
-          v-if="saveResult"
-          :type="saveResult.success ? 'success' : 'error'"
-          :message="saveResult.message"
+          v-if="settingsStore.saveResult"
+          :type="settingsStore.saveResult.success ? 'success' : 'error'"
+          :message="settingsStore.saveResult.message"
           class="mt-4"
         />
       </div>
@@ -156,9 +156,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { httpService } from '../services/httpService'
-import type { Settings } from '../types'
+import { onMounted } from 'vue'
+import { useSettingsStore } from '../stores'
 import BasePageHeader from '../components/base/BasePageHeader.vue'
 import BaseCard from '../components/base/BaseCard.vue'
 import BaseInput from '../components/base/BaseInput.vue'
@@ -167,62 +166,21 @@ import BaseAlert from '../components/base/BaseAlert.vue'
 import RangeSlider from '../components/settings/RangeSlider.vue'
 import NumberInput from '../components/settings/NumberInput.vue'
 
-const settings = ref<Settings>({
-  apiProvider: 'DeepSeek',
-  apiKey: '',
-  embeddingDimensions: 384,
-  chunkSize: 500,
-  chunkOverlap: 50,
-  retrievalCount: 5,
-  temperature: 0.7,
-  maxTokens: 2000,
-  apiBase: 'https://api.deepseek.com/v1',
-  chromaPath: './chroma_db',
-  port: 3000
-})
-
-// Computed properties to ensure values are always defined
-const portValue = computed({
-  get: () => settings.value.port || 3000,
-  set: (value: number) => {
-    settings.value.port = value
-  }
-})
-
-const isSaving = ref(false)
-const isResetting = ref(false)
-const saveResult = ref<{ success: boolean; message: string } | null>(null)
+const settingsStore = useSettingsStore()
 
 const loadSettings = async () => {
   try {
-    const response = await httpService.get('/api/settings')
-    settings.value = response.data.data
+    await settingsStore.loadSettings()
   } catch (error) {
     console.error('Error loading settings:', error)
   }
 }
 
 const saveSettings = async () => {
-  isSaving.value = true
-  saveResult.value = null
-
   try {
-    await httpService.put('/api/settings', settings.value)
-    saveResult.value = {
-      success: true,
-      message: '设置保存成功！'
-    }
-  } catch (error: any) {
-    saveResult.value = {
-      success: false,
-      message: error.response?.data?.message || '保存设置失败'
-    }
-  } finally {
-    isSaving.value = false
-
-    setTimeout(() => {
-      saveResult.value = null
-    }, 3000)
+    await settingsStore.saveSettings()
+  } catch (error) {
+    console.error('Error saving settings:', error)
   }
 }
 
@@ -235,19 +193,14 @@ const resetDatabase = async () => {
     return
   }
 
-  isResetting.value = true
-
   try {
-    await httpService.post('/api/settings/reset')
+    await settingsStore.resetDatabase()
     alert('数据库重置成功！')
   } catch (error) {
     console.error('Error resetting database:', error)
     alert('数据库重置失败')
-  } finally {
-    isResetting.value = false
   }
 }
-
 
 onMounted(() => {
   loadSettings()
