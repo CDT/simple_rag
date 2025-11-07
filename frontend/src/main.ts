@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
+import 'highlight.js/styles/github-dark.css' // Syntax highlighting theme
 import App from './App.vue'
 import router from './router'
 

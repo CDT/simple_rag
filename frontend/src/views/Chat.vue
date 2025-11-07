@@ -34,6 +34,10 @@
         :content="message.content"
         :sources="message.sources"
         :isStreaming="message.isStreaming"
+        :isAnyStreaming="chatStore.isStreaming"
+        :messageIndex="index"
+        @edit="handleEdit"
+        @replay="handleReplay"
       />
     </div>
 
@@ -45,15 +49,25 @@
           type="text"
           placeholder="输入您的问题..."
           class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-          :disabled="chatStore.isLoading"
+          :disabled="chatStore.isLoading || chatStore.isStreaming"
         />
         <BaseButton
+          v-if="!chatStore.isStreaming"
           type="submit"
           variant="primary"
           size="lg"
           :disabled="chatStore.isLoading || !newMessage.trim()"
         >
           发送
+        </BaseButton>
+        <BaseButton
+          v-else
+          type="button"
+          variant="danger"
+          size="lg"
+          @click="stopStreaming"
+        >
+          停止
         </BaseButton>
       </form>
       <div class="mt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
@@ -115,10 +129,27 @@ const sendMessage = async () => {
   }
 }
 
+const stopStreaming = () => {
+  chatStore.stopStreaming()
+}
+
 const clearChat = () => {
   if (confirm('确定要清空对话吗？')) {
     chatStore.clearChat()
   }
+}
+
+const handleEdit = async (index: number, content: string) => {
+  const editedMessage = prompt('编辑消息：', content)
+  if (editedMessage !== null && editedMessage.trim()) {
+    await chatStore.editAndResend(index, editedMessage.trim())
+    scrollToBottom()
+  }
+}
+
+const handleReplay = async (index: number, content: string) => {
+  await chatStore.replayMessage(index, content)
+  scrollToBottom()
 }
 
 onMounted(() => {

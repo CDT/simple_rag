@@ -8,8 +8,10 @@ export const useChatStore = defineStore('chat', () => {
   // State
   const messages = ref<Message[]>([])
   const isLoading = ref(false)
+  const isStreaming = ref(false)
   const collections = ref<string[]>([])
   const selectedCollection = ref<string | number>('')
+  let abortController: AbortController | null = null
 
   // Actions
   const fetchCollections = async () => {
@@ -47,6 +49,9 @@ export const useChatStore = defineStore('chat', () => {
     // Keep track of the index for reactivity updates
     const assistantIndex = messages.value.length - 1
 
+    // Create new AbortController for this request
+    abortController = new AbortController()
+
     try {
       // Build history (all messages except the user message and placeholder)
       const history = messages.value.slice(0, -2).map(m => ({
@@ -63,7 +68,8 @@ export const useChatStore = defineStore('chat', () => {
           message: messageContent,
           history,
           collection: selectedCollection.value || undefined
-        })
+        }),
+        signal: abortController.signal
       })
 
       if (!response.ok) {
@@ -109,6 +115,7 @@ export const useChatStore = defineStore('chat', () => {
               // Hide loading indicator once we start receiving content
               if (!hasStartedStreaming) {
                 isLoading.value = false
+                isStreaming.value = true
                 hasStartedStreaming = true
               }
               
@@ -139,16 +146,37 @@ export const useChatStore = defineStore('chat', () => {
         }
       }
     } catch (error: any) {
-      console.error('Error sending message:', error)
-      // Update the placeholder message with error
-      messages.value[assistantIndex] = {
-        ...messages.value[assistantIndex],
-        content: `Error: ${error.message || 'Failed to get response'}`,
-        isStreaming: false
+      // Check if the error is due to abort
+      if (error.name === 'AbortError') {
+        // Mark the message as stopped (this is expected behavior, not an error)
+        messages.value[assistantIndex] = {
+          ...messages.value[assistantIndex],
+          content: messages.value[assistantIndex].content || '(Stopped)',
+          isStreaming: false
+        }
+        // Don't log or throw - this is an intentional user action
+      } else {
+        // This is an actual error - log and handle it
+        console.error('Error sending message:', error)
+        // Update the placeholder message with error
+        messages.value[assistantIndex] = {
+          ...messages.value[assistantIndex],
+          content: `Error: ${error.message || 'Failed to get response'}`,
+          isStreaming: false
+        }
+        throw error
       }
-      throw error
     } finally {
       isLoading.value = false
+      isStreaming.value = false
+      abortController = null
+    }
+  }
+
+  const stopStreaming = () => {
+    if (abortController) {
+      abortController.abort()
+      abortController = null
     }
   }
 
@@ -160,17 +188,63 @@ export const useChatStore = defineStore('chat', () => {
     selectedCollection.value = collection
   }
 
+  const editAndResend = async (messageIndex: number, newContent: string) => {
+    // Ensure the message at the index is a user message
+    if (messages.value[messageIndex]?.role !== 'user') {
+      console.error('Can only edit user messages')
+      return
+    }
+
+    // Stop any active streaming before editing
+    if (abortController) {
+      stopStreaming()
+      // Wait a bit for the abort to complete
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    // Remove all messages from the edited message onwards
+    messages.value = messages.value.slice(0, messageIndex)
+
+    // Send the edited message
+    await sendMessage(newContent)
+  }
+
+  const replayMessage = async (messageIndex: number, content: string) => {
+    // Ensure the message at the index is a user message
+    if (messages.value[messageIndex]?.role !== 'user') {
+      console.error('Can only replay user messages')
+      return
+    }
+
+    // Stop any active streaming before replaying
+    if (abortController) {
+      stopStreaming()
+      // Wait a bit for the abort to complete
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    // Remove all messages from the replayed message onwards
+    messages.value = messages.value.slice(0, messageIndex)
+
+    // Resend the same message
+    await sendMessage(content)
+  }
+
   return {
     // State
     messages,
     isLoading,
+    isStreaming,
     collections,
     selectedCollection,
     // Actions
     fetchCollections,
     sendMessage,
+    stopStreaming,
     clearChat,
-    setSelectedCollection
+    setSelectedCollection,
+    editAndResend,
+    replayMessage
   }
 })
 
